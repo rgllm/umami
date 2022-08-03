@@ -7,88 +7,341 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model account {
-  user_id    Int       @id @default(autoincrement())
-  username   String    @unique @db.VarChar(255)
-  password   String    @db.VarChar(60)
-  is_admin   Boolean   @default(false)
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @default(now()) @db.Timestamptz(6)
-  website    website[]
+model user {
+  id                       Int                @id @default(autoincrement()) @map("user_id")
+  username                 String             @unique @db.VarChar(255)
+  password                 String             @db.VarChar(60)
+  createdAt                DateTime?          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime?          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  userUuid                 String?            @map("user_uuid") @db.Uuid
+  createdById              Int?               @map("created_by_id")
+  updatedById              Int?               @map("updated_by_id")
+  isDeleted                Boolean            @default(false) @map("is_deleted")
+  createdByUser            user?              @relation(name: "CreatedByUser", fields: [createdById], references: [id])
+  updatedByUser            user?              @relation(name: "UpdatedByUser", fields: [updatedById], references: [id])
+  teamUsers                teamUser[]         @relation(name: "TeamUsers")
+  userWebsites             userWebsite[]      @relation(name: "UserWebsites")
+  userRoles                userRole[]         @relation(name: "UserRoles")
+  groupUsers               groupUser[]        @relation(name: "GroupUsers")
+  createdGroups            group[]            @relation(name: "CreatedGroups")
+  updatedGroups            group[]            @relation(name: "UpdatedGroups")
+  createdGroupRoles        groupRole[]        @relation(name: "CreatedGroupRoles")
+  updatedGroupRoles        groupRole[]        @relation(name: "UpdatedGroupRoles")
+  createdGroupWebsites     groupWebsite[]     @relation(name: "CreatedGroupWebsites")
+  updatedGroupWebsites     groupWebsite[]     @relation(name: "UpdatedGroupWebsites")
+  createdGroupWebsiteRoles groupWebsiteRole[] @relation(name: "CreatedGroupWebsiteRoles")
+  updatedGroupWebsiteRoles groupWebsiteRole[] @relation(name: "UpdatedGroupWebsiteRoles")
+  createdGroupUsers        groupUser[]        @relation(name: "CreatedGroupUsers")
+  updatedGroupUsers        groupUser[]        @relation(name: "UpdatedGroupUsers")
+  createdPermissions       permission[]       @relation(name: "CreatedPermissions")
+  updatedPermissions       permission[]       @relation(name: "UpdatedPermissions")
+  createdRoles             role[]             @relation(name: "CreatedRoles")
+  updatedRoles             role[]             @relation(name: "UpdatedRoles")
+  createdWebsites          website[]          @relation(name: "CreatedWebsites")
+  updatedebsites           website[]          @relation(name: "UpdatedWebsites")
+  createdTeams             team[]             @relation(name: "CreatedTeams")
+  updatedTeams             team[]             @relation(name: "UpdatedTeams")
+  createdTeamWebsites      teamWebsite[]      @relation(name: "CreatedTeamWebsites")
+  updatedTeamWebsites      teamWebsite[]      @relation(name: "UpdatedTeamWebsites")
+  createdTeamUsers         teamUser[]         @relation(name: "CreatedTeamUsers")
+  updatedTeamUsers         teamUser[]         @relation(name: "UpdatedTeamUsers")
+  createdUsers             user[]             @relation(name: "CreatedByUser")
+  updatedUsers             user[]             @relation(name: "UpdatedByUser")
+  createdUserRoles         userRole[]         @relation(name: "CreatedUserRoles")
+  updatedUserRoles         userRole[]         @relation(name: "UpdatedUserRoles")
+  createduserWebsites      userWebsite[]      @relation(name: "CreateduserWebsites")
+  updatedUserWebsites      userWebsite[]      @relation(name: "UpdatedUserWebsites")
 }
 
 model event {
-  event_id   Int         @id @default(autoincrement())
-  website_id Int
-  session_id Int
-  created_at DateTime?   @default(now()) @db.Timestamptz(6)
-  url        String      @db.VarChar(500)
-  event_name String      @db.VarChar(50)
-  session    session     @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
-  website    website     @relation(fields: [website_id], references: [website_id], onDelete: Cascade)
-  event_data event_data?
+  id            Int        @id() @unique() @default(autoincrement()) @map("event_id")
+  websiteId     Int        @map("website_id")
+  sessionId     Int        @map("session_id")
+  createdAt     DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
+  url           String     @db.VarChar(500)
+  event_name    String     @db.VarChar(50)
+  session       session    @relation(fields: [sessionId], references: [id])
+  website       website    @relation(fields: [websiteId], references: [id])
+  eventMetadata eventData?
 
-  @@index([created_at])
-  @@index([session_id])
-  @@index([website_id])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([websiteId])
 }
 
-model event_data {
-  event_data_id Int   @id @default(autoincrement())
-  event_id      Int   @unique
-  event_data    Json
-  event         event @relation(fields: [event_id], references: [event_id])
+model eventData {
+  id        Int   @id @default(autoincrement()) @map("event_data_id")
+  eventId   Int   @unique @map("event_id")
+  eventData Json  @map("event_data")
+  event     event @relation(fields: [eventId], references: [id])
+
+  @@map("event_data")
 }
 
 model pageview {
-  view_id    Int       @id @default(autoincrement())
-  website_id Int
-  session_id Int
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  url        String    @db.VarChar(500)
-  referrer   String?   @db.VarChar(500)
-  session    session   @relation(fields: [session_id], references: [session_id], onDelete: Cascade)
-  website    website   @relation(fields: [website_id], references: [website_id], onDelete: Cascade)
+  id        Int       @id @default(autoincrement()) @map("view_id")
+  websiteId Int       @map("website_id")
+  sessionId Int       @map("session_id")
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  url       String    @db.VarChar(500)
+  referrer  String?   @db.VarChar(500)
+  session   session   @relation(fields: [sessionId], references: [id])
+  website   website   @relation(fields: [websiteId], references: [id])
 
-  @@index([created_at])
-  @@index([session_id])
-  @@index([website_id, created_at])
-  @@index([website_id])
-  @@index([website_id, session_id, created_at])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([websiteId, createdAt])
+  @@index([websiteId])
+  @@index([websiteId, sessionId, createdAt])
 }
 
 model session {
-  session_id   Int        @id @default(autoincrement())
-  session_uuid String     @unique @db.Uuid
-  website_id   Int
-  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
-  hostname     String?    @db.VarChar(100)
-  browser      String?    @db.VarChar(20)
-  os           String?    @db.VarChar(20)
-  device       String?    @db.VarChar(20)
-  screen       String?    @db.VarChar(11)
-  language     String?    @db.VarChar(35)
-  country      String?    @db.Char(2)
-  website      website    @relation(fields: [website_id], references: [website_id], onDelete: Cascade)
-  pageview     pageview[]
-  event        event[]
+  id          Int        @id @default(autoincrement()) @map("session_id")
+  sessionUuid String     @map("session_uuid") @db.Uuid
+  websiteId   Int        @map("website_id")
+  createdAt   DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
+  hostname    String?    @db.VarChar(100)
+  browser     String?    @db.VarChar(20)
+  os          String?    @db.VarChar(20)
+  device      String?    @db.VarChar(20)
+  screen      String?    @db.VarChar(11)
+  language    String?    @db.VarChar(35)
+  country     String?    @db.Char(2)
+  website     website?   @relation(fields: [websiteId], references: [id])
+  events      event[]
+  pageview    pageview[]
 
-  @@index([created_at])
-  @@index([website_id])
+  @@index([createdAt])
+  @@index([websiteId])
 }
 
 model website {
-  website_id   Int        @id @default(autoincrement())
-  website_uuid String     @unique @db.Uuid
-  user_id      Int
-  name         String     @db.VarChar(100)
-  domain       String?    @db.VarChar(500)
-  share_id     String?    @unique @db.VarChar(64)
-  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
-  account      account    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  pageview     pageview[]
-  session      session[]
-  event        event[]
+  id          Int       @id @default(autoincrement()) @map("website_id")
+  websiteUuid String    @unique @map("website_uuid") @db.Uuid
+  name        String    @db.VarChar(100)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  domain      String?   @db.VarChar(500)
+  shareId     String?   @unique(map: "website_share_id_idx") @map("share_id") @db.VarChar(64)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
 
-  @@index([user_id])
+  createdByUser user?          @relation(name: "CreatedWebsites", fields: [createdById], references: [id])
+  updatedByUser user?          @relation(name: "UpdatedWebsites", fields: [updatedById], references: [id])
+  events        event[]
+  groupWebsites groupWebsite[]
+  teamWebsites  teamWebsite[]
+  userWebsites  userWebsite[]
+  pageview      pageview[]
+  session       session[]
+}
+
+model group {
+  id          Int       @id() @unique() @default(autoincrement()) @map("group_id")
+  name        String    @unique() @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user?          @relation(name: "CreatedGroups", fields: [createdById], references: [id])
+  updatedByUser user?          @relation(name: "UpdatedGroups", fields: [updatedById], references: [id])
+  groupRoles    groupRole[]
+  groupWebsites groupWebsite[]
+  groupUsers    groupUser[]
+}
+
+model groupRole {
+  id          Int       @id() @unique() @default(autoincrement()) @map("group_role_id")
+  groupId     Int       @map("group_id")
+  roleId      Int       @map("role_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user? @relation(name: "CreatedGroupRoles", fields: [createdById], references: [id])
+  updatedByUser user? @relation(name: "UpdatedGroupRoles", fields: [updatedById], references: [id])
+  group         group @relation(fields: [groupId], references: [id])
+  role          role  @relation(fields: [roleId], references: [id])
+
+  @@map("group_role")
+}
+
+model groupWebsite {
+  id          Int       @id() @unique() @default(autoincrement()) @map("group_website_id")
+  groupId     Int       @map("group_id")
+  websiteId   Int       @map("website_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser     user?              @relation(name: "CreatedGroupWebsites", fields: [createdById], references: [id])
+  updatedByUser     user?              @relation(name: "UpdatedGroupWebsites", fields: [updatedById], references: [id])
+  group             group              @relation(fields: [groupId], references: [id])
+  website           website            @relation(fields: [websiteId], references: [id])
+  groupWebsiteRoles groupWebsiteRole[]
+
+  @@map("group_website")
+}
+
+model groupWebsiteRole {
+  id             Int       @id() @unique() @default(autoincrement()) @map("group_website_role_id")
+  groupWebsiteId Int       @map("group_website_id")
+  roleId         Int       @map("role_id")
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById    Int?      @map("created_by_id")
+  updatedAt      DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById    Int?      @map("updated_by_id")
+  isDeleted      Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user?        @relation(name: "CreatedGroupWebsiteRoles", fields: [createdById], references: [id])
+  updatedByUser user?        @relation(name: "UpdatedGroupWebsiteRoles", fields: [updatedById], references: [id])
+  groupWebsites groupWebsite @relation(fields: [groupWebsiteId], references: [id])
+  role          role         @relation(fields: [roleId], references: [id])
+
+  @@map("group_website_role")
+}
+
+model groupUser {
+  id          Int       @id() @unique() @default(autoincrement()) @map("group_user_id")
+  groupId     Int       @map("group_id")
+  userId      Int       @map("user_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user? @relation(name: "CreatedGroupUsers", fields: [createdById], references: [id])
+  updatedByUser user? @relation(name: "UpdatedGroupUsers", fields: [updatedById], references: [id])
+  group         group @relation(fields: [groupId], references: [id])
+  user          user  @relation(name: "GroupUsers", fields: [userId], references: [id])
+
+  @@map("group_user")
+}
+
+model permission {
+  id          Int       @id() @unique() @default(autoincrement()) @map("permission_id")
+  name        String    @unique() @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user? @relation(name: "CreatedPermissions", fields: [createdById], references: [id])
+  updatedByUser user? @relation(name: "UpdatedPermissions", fields: [updatedById], references: [id])
+}
+
+model role {
+  id          Int       @id() @unique() @default(autoincrement()) @map("role_id")
+  name        String    @unique(map: "role_name_uindex") @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser     user?              @relation(name: "CreatedRoles", fields: [createdById], references: [id])
+  updatedByUser     user?              @relation(name: "UpdatedRoles", fields: [updatedById], references: [id])
+  groupRoles        groupRole[]
+  groupWebsiteRoles groupWebsiteRole[]
+  userRoles         userRole[]
+}
+
+model team {
+  id          Int       @id() @unique() @default(autoincrement()) @map("team_id")
+  teamUuid    String    @unique(map: "team_team_uuid_uindex") @map("team_uuid") @db.Uuid
+  name        String    @unique(map: "team_name_uindex") @db.VarChar(50)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user?         @relation(name: "CreatedTeams", fields: [createdById], references: [id])
+  updatedByUser user?         @relation(name: "UpdatedTeams", fields: [updatedById], references: [id])
+  teamWebsites  teamWebsite[]
+  teamUsers     teamUser[]
+}
+
+model teamWebsite {
+  id          Int       @id() @unique() @default(autoincrement()) @map("team_website_id")
+  teamId      Int       @map("team_id")
+  websiteId   Int       @map("website_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user?   @relation(name: "CreatedTeamWebsites", fields: [createdById], references: [id])
+  updatedByUser user?   @relation(name: "UpdatedTeamWebsites", fields: [updatedById], references: [id])
+  website       website @relation(fields: [websiteId], references: [id])
+  team          team    @relation(fields: [teamId], references: [id])
+
+  @@map("team_website")
+}
+
+model teamUser {
+  id          Int       @id() @unique() @default(autoincrement()) @map("team_user_id")
+  teamId      Int       @map("team_id")
+  userId      Int       @map("user_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user? @relation(name: "CreatedTeamUsers", fields: [createdById], references: [id])
+  updatedByUser user? @relation(name: "UpdatedTeamUsers", fields: [updatedById], references: [id])
+  team          team  @relation(fields: [teamId], references: [id])
+  user          user  @relation(name: "TeamUsers", fields: [userId], references: [id])
+
+  @@map("team_user")
+}
+
+model userRole {
+  id          Int       @id() @unique() @default(autoincrement()) @map("user_role_id")
+  roleId      Int       @map("role_id")
+  userId      Int       @map("user_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user? @relation(name: "CreatedUserRoles", fields: [createdById], references: [id])
+  updatedByUser user? @relation(name: "UpdatedUserRoles", fields: [updatedById], references: [id])
+  role          role  @relation(fields: [roleId], references: [id])
+  user          user  @relation(name: "UserRoles", fields: [userId], references: [id])
+
+  @@map("user_role")
+}
+
+model userWebsite {
+  id          Int       @id() @unique() @default(autoincrement()) @map("user_website_id")
+  userId      Int       @map("user_id")
+  websiteId   Int       @map("website_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdById Int?      @map("created_by_id")
+  updatedAt   DateTime? @map("updated_at") @db.Timestamptz(6)
+  updatedById Int?      @map("updated_by_id")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  createdByUser user?   @relation(name: "CreateduserWebsites", fields: [createdById], references: [id])
+  updatedByUser user?   @relation(name: "UpdatedUserWebsites", fields: [updatedById], references: [id])
+  website       website @relation(fields: [websiteId], references: [id])
+  user          user    @relation(name: "UserWebsites", fields: [userId], references: [id])
+
+  @@map("user_website")
 }
