@@ -14,6 +14,7 @@ ALTER TABLE "event" RENAME TO "_event_old";
 -- CreateTable
 CREATE TABLE "event" (
     "event_id" SERIAL NOT NULL,
+    "event_uuid" UUID NOT NULL,
     "website_id" INTEGER NOT NULL,
     "session_id" INTEGER NOT NULL,
     "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
@@ -32,6 +33,9 @@ CREATE INDEX "event_session_id_idx" ON "event"("session_id");
 -- CreateIndex
 CREATE INDEX "event_website_id_idx" ON "event"("website_id");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "event_event_uuid_key" ON "event"("event_uuid");
+
 -- AddForeignKey
 ALTER TABLE "event" ADD CONSTRAINT "event_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "session"("session_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -40,18 +44,15 @@ ALTER TABLE "event" ADD CONSTRAINT "event_website_id_fkey" FOREIGN KEY ("website
 
 -- CreateTable
 CREATE TABLE "event_data" (
-    "event_data_id" SERIAL NOT NULL,
-    "event_id" INTEGER NOT NULL,
-    "event_data" JSONB NOT NULL,
-
-    CONSTRAINT "event_data_pkey" PRIMARY KEY ("event_data_id")
+    "event_uuid" UUID NOT NULL,
+    "event_data" JSONB NOT NULL
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "event_data_event_id_key" ON "event_data"("event_id");
+CREATE UNIQUE INDEX "event_data_event_uuid_key" ON "event_data"("event_uuid");
 
 -- AddForeignKey
-ALTER TABLE "event_data" ADD CONSTRAINT "event_data_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "event"("event_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "event_data" ADD CONSTRAINT "event_data_event_uuid_fkey" FOREIGN KEY ("event_uuid") REFERENCES "event"("event_uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- RenameIndex
 ALTER INDEX "account.username_unique" RENAME TO "account_username_key";

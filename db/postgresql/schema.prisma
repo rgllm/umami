@@ -19,6 +19,7 @@ model account {
 
 model event {
   event_id   Int         @id @default(autoincrement())
+  event_uuid String      @unique @default(uuid()) @db.Uuid
   website_id Int
   session_id Int
   created_at DateTime?   @default(now()) @db.Timestamptz(6)
@@ -34,10 +35,9 @@ model event {
 }
 
 model event_data {
-  event_data_id Int   @id @default(autoincrement())
-  event_id      Int   @unique
-  event_data    Json
-  event         event @relation(fields: [event_id], references: [event_id])
+  event_uuid String @unique @db.Uuid
+  event_data Json
+  event      event  @relation(fields: [event_uuid], references: [event_uuid])
 }
 
 model pageview {
